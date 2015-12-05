@@ -1,11 +1,13 @@
 package smasini.it.wearsample;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
-import android.support.wearable.view.BoxInsetLayout;
+import android.support.wearable.view.DotsPageIndicator;
+import android.support.wearable.view.GridViewPager;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.view.WindowInsets;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,7 +21,6 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends WearableActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -29,9 +30,9 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
 
     private GoogleApiClient mGoogleApiClient;
 
-    private BoxInsetLayout mContainerView;
+    /*private BoxInsetLayout mContainerView;
     private TextView mTextView;
-    private TextView mClockView;
+    private TextView mClockView;*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +40,9 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
 
-        mContainerView = (BoxInsetLayout) findViewById(R.id.container);
+        /*mContainerView = (BoxInsetLayout) findViewById(R.id.container);
         mTextView = (TextView) findViewById(R.id.text);
-        mClockView = (TextView) findViewById(R.id.clock);
+        mClockView = (TextView) findViewById(R.id.clock);*/
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                                     .addApi(Wearable.API)
@@ -49,6 +50,31 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
                                     .addOnConnectionFailedListener(this)
                                     .build();
         mGoogleApiClient.connect();
+
+        final Resources res = getResources();
+        final GridViewPager pager = (GridViewPager) findViewById(R.id.pager);
+        pager.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                // Adjust page margins:
+                //   A little extra horizontal spacing between pages looks a bit
+                //   less crowded on a round display.
+                final boolean round = insets.isRound();
+                int rowMargin = res.getDimensionPixelOffset(R.dimen.page_row_margin);
+                int colMargin = res.getDimensionPixelOffset(round ?
+                        R.dimen.page_column_margin_round : R.dimen.page_column_margin);
+                pager.setPageMargins(rowMargin, colMargin);
+
+                // GridViewPager relies on insets to properly handle
+                // layout for round displays. They must be explicitly
+                // applied since this listener has taken them over.
+                pager.onApplyWindowInsets(insets);
+                return insets;
+            }
+        });
+        pager.setAdapter(new SampleGridPagerAdapter(this, getFragmentManager()));
+        DotsPageIndicator dotsPageIndicator = (DotsPageIndicator) findViewById(R.id.page_indicator);
+        dotsPageIndicator.setPager(pager);
     }
 
     @Override
@@ -70,7 +96,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
     }
 
     private void updateDisplay() {
-        if (isAmbient()) {
+        /*if (isAmbient()) {
             mContainerView.setBackgroundColor(getResources().getColor(android.R.color.black));
             mTextView.setTextColor(getResources().getColor(android.R.color.white));
             mClockView.setVisibility(View.VISIBLE);
@@ -80,7 +106,7 @@ public class MainActivity extends WearableActivity implements GoogleApiClient.Co
             mContainerView.setBackground(null);
             mTextView.setTextColor(getResources().getColor(android.R.color.black));
             mClockView.setVisibility(View.GONE);
-        }
+        }*/
     }
 
     public void sendStepCount(int steps, long timestamp){
